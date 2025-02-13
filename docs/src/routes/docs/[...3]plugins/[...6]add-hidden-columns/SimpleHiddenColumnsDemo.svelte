@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { readable } from 'svelte/store';
   import { createTable, Subscribe, Render } from 'svelte-headless-table';
   import { addHiddenColumns } from 'svelte-headless-table/plugins';
@@ -51,10 +53,12 @@
     table.createViewModel(columns);
   const { hiddenColumnIds } = pluginStates.hideCols;
   const ids = flatColumns.map((c) => c.id);
-  let hideForId = Object.fromEntries(ids.map((id) => [id, false]));
-  $: $hiddenColumnIds = Object.entries(hideForId)
-    .filter(([, hide]) => hide)
-    .map(([id]) => id);
+  let hideForId = $state(Object.fromEntries(ids.map((id) => [id, false])));
+  run(() => {
+    $hiddenColumnIds = Object.entries(hideForId)
+      .filter(([, hide]) => hide)
+      .map(([id]) => id);
+  });
 </script>
 
 <pre>$hiddenColumnIds = {JSON.stringify($hiddenColumnIds, null, 2)}</pre>
@@ -70,32 +74,40 @@
   <table class="demo mb-0" {...$tableAttrs}>
     <thead>
       {#each $headerRows as headerRow (headerRow.id)}
-        <Subscribe rowAttrs={headerRow.attrs()} let:rowAttrs>
-          <tr {...rowAttrs}>
-            {#each headerRow.cells as cell (cell.id)}
-              <Subscribe attrs={cell.attrs()} let:attrs>
-                <th {...attrs}>
-                  <Render of={cell.render()} />
-                </th>
-              </Subscribe>
-            {/each}
-          </tr>
-        </Subscribe>
+        <Subscribe rowAttrs={headerRow.attrs()} >
+          {#snippet children({ rowAttrs })}
+                    <tr {...rowAttrs}>
+              {#each headerRow.cells as cell (cell.id)}
+                <Subscribe attrs={cell.attrs()} >
+                  {#snippet children({ attrs })}
+                                <th {...attrs}>
+                      <Render of={cell.render()} />
+                    </th>
+                                                {/snippet}
+                            </Subscribe>
+              {/each}
+            </tr>
+                            {/snippet}
+                </Subscribe>
       {/each}
     </thead>
     <tbody {...$tableBodyAttrs}>
       {#each $rows as row (row.id)}
-        <Subscribe rowAttrs={row.attrs()} let:rowAttrs>
-          <tr {...rowAttrs}>
-            {#each row.cells as cell (cell.id)}
-              <Subscribe attrs={cell.attrs()} let:attrs>
-                <td {...attrs}>
-                  <Render of={cell.render()} />
-                </td>
-              </Subscribe>
-            {/each}
-          </tr>
-        </Subscribe>
+        <Subscribe rowAttrs={row.attrs()} >
+          {#snippet children({ rowAttrs })}
+                    <tr {...rowAttrs}>
+              {#each row.cells as cell (cell.id)}
+                <Subscribe attrs={cell.attrs()} >
+                  {#snippet children({ attrs })}
+                                <td {...attrs}>
+                      <Render of={cell.render()} />
+                    </td>
+                                                {/snippet}
+                            </Subscribe>
+              {/each}
+            </tr>
+                            {/snippet}
+                </Subscribe>
       {/each}
     </tbody>
   </table>

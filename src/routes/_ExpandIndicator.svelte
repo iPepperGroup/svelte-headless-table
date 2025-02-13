@@ -1,14 +1,23 @@
 <script lang="ts">
 	import type { Readable, Writable } from 'svelte/store';
 
-	export let isExpanded: Writable<boolean>;
-	export let canExpand: Readable<boolean>;
-	export let isAllSubRowsExpanded: Readable<boolean>;
-	export let depth: number;
+	interface Props {
+		isExpanded: Writable<boolean>;
+		canExpand: Readable<boolean>;
+		isAllSubRowsExpanded: Readable<boolean>;
+		depth: number;
+	}
+
+	let {
+		isExpanded,
+		canExpand,
+		isAllSubRowsExpanded,
+		depth
+	}: Props = $props();
 </script>
 
 {#if $canExpand}
-	<span on:click={() => ($isExpanded = !$isExpanded)} style:--depth={depth}>
+	<span onclick={() => ($isExpanded = !$isExpanded)} style:--depth={depth}>
 		{#if $isExpanded}
 			{#if $isAllSubRowsExpanded}
 				⬇️

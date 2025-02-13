@@ -1,13 +1,20 @@
 <script lang="ts">
+	import { createBubbler, stopPropagation } from 'svelte/legacy';
+
+	const bubble = createBubbler();
 	import type { Readable, Writable } from 'svelte/store';
 
-	export let filterValue: Writable<string>;
-	export let values: Readable<string[]>;
+	interface Props {
+		filterValue: Writable<string>;
+		values: Readable<string[]>;
+	}
+
+	let { filterValue, values }: Props = $props();
 </script>
 
 <input
 	type="text"
 	bind:value={$filterValue}
-	on:click|stopPropagation
+	onclick={stopPropagation(bubble('click'))}
 	placeholder="Search {$values.length} records..."
 />

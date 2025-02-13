@@ -1,8 +1,12 @@
 <script lang="ts">
-  export let label: string;
-  export let order: string | undefined;
-  $: indicator = order === 'asc' ? '🔼' : order === 'desc' ? '🔽' : '';
-  export let toggle: (ev: Event) => void;
+  interface Props {
+    label: string;
+    order: string | undefined;
+    toggle: (ev: Event) => void;
+  }
+
+  let { label, order, toggle }: Props = $props();
+  let indicator = $derived(order === 'asc' ? '🔼' : order === 'desc' ? '🔽' : '');
 </script>
 
-<div on:click={toggle}>{label} {indicator}</div>
+<div onclick={toggle}>{label} {indicator}</div>

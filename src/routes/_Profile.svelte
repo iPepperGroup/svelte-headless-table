@@ -1,7 +1,11 @@
 <script lang="ts">
-	export let name: string;
-	export let age: number;
-	export let progress: number;
+	interface Props {
+		name: string;
+		age: number;
+		progress: number;
+	}
+
+	let { name, age, progress }: Props = $props();
 </script>
 
 <div>{name}, <strong>{age}</strong></div>

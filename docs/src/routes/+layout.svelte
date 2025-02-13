@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import '../app.postcss';
   import '@svelteness/kit-docs/client/polyfills/index.js';
   import '@svelteness/kit-docs/client/styles/normalize.css';
@@ -19,9 +21,16 @@
     type LoadKitDocsResult,
   } from '@svelteness/kit-docs';
 
-  export let data: LoadKitDocsResult;
-  let { meta, sidebar } = data;
-  $: ({ meta, sidebar } = data);
+  interface Props {
+    data: LoadKitDocsResult;
+    children?: import('svelte').Snippet;
+  }
+
+  let { data, children }: Props = $props();
+  let { meta, sidebar } = $state(data);
+  run(() => {
+    ({ meta, sidebar } = data);
+  });
 
   const navbar: NavbarConfig = {
     links: [
@@ -32,9 +41,9 @@
 
   const { activeCategory } = createSidebarContext(sidebar);
 
-  $: category = $activeCategory ? `${$activeCategory}: ` : '';
-  $: title = meta ? `${category}${meta.title} | Svelte Headless Table | Bryan Lee` : null;
-  $: description = meta?.description;
+  let category = $derived($activeCategory ? `${$activeCategory}: ` : '');
+  let title = $derived(meta ? `${category}${meta.title} | Svelte Headless Table | Bryan Lee` : null);
+  let description = $derived(meta?.description);
 </script>
 
 <svelte:head>
@@ -50,7 +59,8 @@
 
 <KitDocs {meta}>
   <KitDocsLayout {navbar} {sidebar}>
-    <div slot="navbar-left">
+    <!-- @migration-task: migrate this slot by hand, `navbar-left` is an invalid identifier -->
+  <div slot="navbar-left">
       <div class="logo p-2">
         <Button href="/">
           <div class="flex items-center gap-2 text-xl tracking-tight">
@@ -60,11 +70,12 @@
       </div>
     </div>
 
-    <div class="socials" slot="navbar-right-alt">
+    <!-- @migration-task: migrate this slot by hand, `navbar-right-alt` is an invalid identifier -->
+  <div class="socials" slot="navbar-right-alt">
       <SocialLink type="gitHub" href="https://github.com/bryanmylee/svelte-headless-table" />
     </div>
 
-    <slot />
+    {@render children?.()}
   </KitDocsLayout>
 </KitDocs>
 

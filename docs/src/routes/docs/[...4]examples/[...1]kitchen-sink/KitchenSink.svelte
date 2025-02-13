@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { run, stopPropagation, createBubbler } from 'svelte/legacy';
+
+  const bubble = createBubbler();
   import { derived, readable } from 'svelte/store';
   import { Render, Subscribe, createTable, createRender } from 'svelte-headless-table';
   import {
@@ -244,10 +247,12 @@
   const { columnIdOrder } = pluginStates.orderColumns;
   $columnIdOrder = ids;
   const { hiddenColumnIds } = pluginStates.hideColumns;
-  let hideForId = Object.fromEntries(ids.map((id) => [id, false]));
-  $: $hiddenColumnIds = Object.entries(hideForId)
-    .filter(([, hide]) => hide)
-    .map(([id]) => id);
+  let hideForId = $state(Object.fromEntries(ids.map((id) => [id, false])));
+  run(() => {
+    $hiddenColumnIds = Object.entries(hideForId)
+      .filter(([, hide]) => hide)
+      .map(([id]) => id);
+  });
   const { columnWidths } = pluginStates.resize;
 </script>
 
@@ -265,11 +270,11 @@
 <h3>Pagination</h3>
 
 <div>
-  <button on:click={() => $pageIndex--} disabled={!$hasPreviousPage} class="demo"
+  <button onclick={() => $pageIndex--} disabled={!$hasPreviousPage} class="demo"
     >Previous page</button
   >
   {$pageIndex + 1} of {$pageCount}
-  <button on:click={() => $pageIndex++} disabled={!$hasNextPage} class="demo">Next page</button>
+  <button onclick={() => $pageIndex++} disabled={!$hasNextPage} class="demo">Next page</button>
 </div>
 <div style:margin-top="1rem">
   <label for="page-size">Page size</label>
@@ -278,7 +283,7 @@
 
 <h3>Column order</h3>
 
-<button on:click={() => ($columnIdOrder = getShuffled($columnIdOrder))} class="demo"
+<button onclick={() => ($columnIdOrder = getShuffled($columnIdOrder))} class="demo"
   >Shuffle columns</button
 >
 
@@ -286,44 +291,48 @@
   <table {...$tableAttrs} class="demo">
     <thead>
       {#each $headerRows as headerRow (headerRow.id)}
-        <Subscribe attrs={headerRow.attrs()} let:attrs>
-          <tr {...attrs}>
-            {#each headerRow.cells as cell (cell.id)}
-              <Subscribe attrs={cell.attrs()} let:attrs props={cell.props()} let:props>
-                <th
-                  {...attrs}
-                  on:click={props.sort.toggle}
-                  class:sorted={props.sort.order !== undefined}
-                  use:props.resize
-                >
-                  <div>
-                    <Render of={cell.render()} />
-                    {#if props.sort.order === 'asc'}
-                      ⬇️
-                    {:else if props.sort.order === 'desc'}
-                      ⬆️
-                    {/if}
-                  </div>
-                  {#if !props.group.disabled}
-                    <button on:click|stopPropagation={props.group.toggle} class="demo">
-                      {#if props.group.grouped}
-                        ungroup
-                      {:else}
-                        group
+        <Subscribe attrs={headerRow.attrs()} >
+          {#snippet children({ attrs })}
+                    <tr {...attrs}>
+              {#each headerRow.cells as cell (cell.id)}
+                <Subscribe attrs={cell.attrs()}  props={cell.props()} >
+                  {#snippet children({ attrs, props })}
+                                <th
+                      {...attrs}
+                      onclick={props.sort.toggle}
+                      class:sorted={props.sort.order !== undefined}
+                      use:props.resize
+                    >
+                      <div>
+                        <Render of={cell.render()} />
+                        {#if props.sort.order === 'asc'}
+                          ⬇️
+                        {:else if props.sort.order === 'desc'}
+                          ⬆️
+                        {/if}
+                      </div>
+                      {#if !props.group.disabled}
+                        <button onclick={stopPropagation(props.group.toggle)} class="demo">
+                          {#if props.group.grouped}
+                            ungroup
+                          {:else}
+                            group
+                          {/if}
+                        </button>
                       {/if}
-                    </button>
-                  {/if}
-                  {#if props.filter !== undefined}
-                    <Render of={props.filter.render} />
-                  {/if}
-                  {#if !props.resize.disabled}
-                    <div class="resizer" on:click|stopPropagation use:props.resize.drag />
-                  {/if}
-                </th>
-              </Subscribe>
-            {/each}
-          </tr>
-        </Subscribe>
+                      {#if props.filter !== undefined}
+                        <Render of={props.filter.render} />
+                      {/if}
+                      {#if !props.resize.disabled}
+                        <div class="resizer" onclick={stopPropagation(bubble('click'))} use:props.resize.drag></div>
+                      {/if}
+                    </th>
+                                                {/snippet}
+                            </Subscribe>
+              {/each}
+            </tr>
+                            {/snippet}
+                </Subscribe>
       {/each}
       <tr>
         <th colspan={$visibleColumns.length}>
@@ -338,26 +347,30 @@
     </thead>
     <tbody {...$tableBodyAttrs}>
       {#each $pageRows as row (row.id)}
-        <Subscribe attrs={row.attrs()} let:attrs rowProps={row.props()} let:rowProps>
-          <tr {...attrs} class:selected={rowProps.select.selected}>
-            {#each row.cells as cell (cell.id)}
-              <Subscribe attrs={cell.attrs()} let:attrs props={cell.props()} let:props>
-                <td
-                  {...attrs}
-                  class:sorted={props.sort.order !== undefined}
-                  class:matches={props.tableFilter.matches}
-                  class:group={props.group.grouped}
-                  class:aggregate={props.group.aggregated}
-                  class:repeat={props.group.repeated}
-                >
-                  {#if !props.group.repeated}
-                    <Render of={cell.render()} />
-                  {/if}
-                </td>
-              </Subscribe>
-            {/each}
-          </tr>
-        </Subscribe>
+        <Subscribe attrs={row.attrs()}  rowProps={row.props()} >
+          {#snippet children({ attrs, rowProps })}
+                    <tr {...attrs} class:selected={rowProps.select.selected}>
+              {#each row.cells as cell (cell.id)}
+                <Subscribe attrs={cell.attrs()}  props={cell.props()} >
+                  {#snippet children({ attrs, props })}
+                                <td
+                      {...attrs}
+                      class:sorted={props.sort.order !== undefined}
+                      class:matches={props.tableFilter.matches}
+                      class:group={props.group.grouped}
+                      class:aggregate={props.group.aggregated}
+                      class:repeat={props.group.repeated}
+                    >
+                      {#if !props.group.repeated}
+                        <Render of={cell.render()} />
+                      {/if}
+                    </td>
+                                                {/snippet}
+                            </Subscribe>
+              {/each}
+            </tr>
+                            {/snippet}
+                </Subscribe>
       {/each}
     </tbody>
   </table>

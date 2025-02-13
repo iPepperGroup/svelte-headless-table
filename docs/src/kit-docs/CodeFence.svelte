@@ -1,40 +1,60 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { getI18nContext } from '@svelteness/kit-docs';
   import clsx from 'clsx';
   import CopyFileIcon from '~icons/ri/file-copy-line';
 
-  export let lang: string | null = null;
-  export let ext: string | null = null;
-  export let code: string | null = null;
-  export let rawCode: string | null = null;
-  export let title: string | null = null;
-  export let linesCount = (code?.match(/"line"/g) || []).length;
-  export let showLineNumbers: boolean = false;
-  export let highlightLines: [number, number][] = [];
-  export let showCopyCode = false;
-  export let copyHighlightOnly = false;
-  export let copySteps = false;
+  interface Props {
+    lang?: string | null;
+    ext?: string | null;
+    code?: string | null;
+    rawCode?: string | null;
+    title?: string | null;
+    linesCount?: any;
+    showLineNumbers?: boolean;
+    highlightLines?: [number, number][];
+    showCopyCode?: boolean;
+    copyHighlightOnly?: boolean;
+    copySteps?: boolean;
+  }
+
+  let {
+    lang = null,
+    ext = null,
+    code = null,
+    rawCode = null,
+    title = null,
+    linesCount = (code?.match(/"line"/g) || []).length,
+    showLineNumbers = false,
+    highlightLines = [],
+    showCopyCode = false,
+    copyHighlightOnly = false,
+    copySteps = false
+  }: Props = $props();
 
   const i18n = getI18nContext();
 
-  let currentStep = 1;
-  let stepHighlightLines: [number, number][] = [];
+  let currentStep = $state(1);
+  let stepHighlightLines: [number, number][] = $state([]);
 
-  $: if (copySteps) {
-    stepHighlightLines = [highlightLines[currentStep - 1] ?? [currentStep, currentStep]];
-  }
+  run(() => {
+    if (copySteps) {
+      stepHighlightLines = [highlightLines[currentStep - 1] ?? [currentStep, currentStep]];
+    }
+  });
 
-  $: currentHighlightedLines = copySteps ? stepHighlightLines : highlightLines;
+  let currentHighlightedLines = $derived(copySteps ? stepHighlightLines : highlightLines);
 
   const isHighlightLine = (lineNumber: number, currentHighlightedLines: [number, number][]) =>
     currentHighlightedLines.some(([start, end]) => lineNumber >= start && lineNumber <= end);
 
   // `linesCount-1` since last line is always empty (prettier)
-  $: lines = [...Array(linesCount - 1).keys()].map((n) => n + 1);
+  let lines = $derived([...Array(linesCount - 1).keys()].map((n) => n + 1));
 
-  $: unescapedRawCode = rawCode?.replace(/&#8203/g, '');
+  let unescapedRawCode = $derived(rawCode?.replace(/&#8203/g, ''));
 
-  let showCopiedCodePrompt = false;
+  let showCopiedCodePrompt = $state(false);
   async function copyCodeToClipboard() {
     try {
       const copiedCode =
@@ -57,15 +77,17 @@
     }
   }
 
-  $: if (showCopiedCodePrompt) {
-    setTimeout(() => {
-      showCopiedCodePrompt = false;
-    }, 400);
-  }
+  run(() => {
+    if (showCopiedCodePrompt) {
+      setTimeout(() => {
+        showCopiedCodePrompt = false;
+      }, 400);
+    }
+  });
 
-  $: showTopBar = title || showCopyCode;
-  $: hasTopbarTitle = title || ext;
-  $: topbarTitle = title ?? (ext === 'sh' ? 'terminal' : ext?.toUpperCase());
+  let showTopBar = $derived(title || showCopyCode);
+  let hasTopbarTitle = $derived(title || ext);
+  let topbarTitle = $derived(title ?? (ext === 'sh' ? 'terminal' : ext?.toUpperCase()));
 </script>
 
 <div
@@ -85,13 +107,13 @@
         <span class="ml-3.5 font-mono text-sm text-gray-300">{topbarTitle}</span>
       {/if}
 
-      <div class="flex-1" />
+      <div class="flex-1"></div>
 
       {#if showCopyCode}
         <button
           type="button"
           class="px-2 py-1 mr-2 hover:opacity-70 active:opacity-50"
-          on:click={copyCodeToClipboard}
+          onclick={copyCodeToClipboard}
         >
           <div
             class={clsx(

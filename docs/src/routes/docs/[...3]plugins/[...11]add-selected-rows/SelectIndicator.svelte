@@ -1,8 +1,12 @@
 <script lang="ts">
   import type { Readable, Writable } from 'svelte/store';
 
-  export let isSelected: Writable<boolean>;
-  export let isSomeSubRowsSelected: Readable<boolean>;
+  interface Props {
+    isSelected: Writable<boolean>;
+    isSomeSubRowsSelected: Readable<boolean>;
+  }
+
+  let { isSelected, isSomeSubRowsSelected }: Props = $props();
 </script>
 
 <input type="checkbox" bind:checked={$isSelected} indeterminate={$isSomeSubRowsSelected} />

@@ -1,9 +1,13 @@
 <script lang="ts">
   import type { Writable, Readable } from 'svelte/store';
 
-  export let filterValue: Writable<string>;
-  export let values: Readable<string[]>;
-  export let preFilteredValues: Readable<string[]>;
+  interface Props {
+    filterValue: Writable<string>;
+    values: Readable<string[]>;
+    preFilteredValues: Readable<string[]>;
+  }
+
+  let { filterValue, values, preFilteredValues }: Props = $props();
 </script>
 
 <label for="filter-input">

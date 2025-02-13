@@ -1,17 +1,30 @@
 <script lang="ts">
+  import { run, preventDefault } from 'svelte/legacy';
+
   import type { DataColumn, BodyRow } from 'svelte-headless-table';
 
-  export let row: BodyRow<any>;
-  export let column: DataColumn<any>;
-  export let value: unknown;
-  export let onUpdateValue: (rowDataId: string, columnId: string, newValue: unknown) => void;
-
-  let isEditing = false;
-
-  let inputElement: HTMLInputElement | undefined;
-  $: if (isEditing) {
-    inputElement?.focus();
+  interface Props {
+    row: BodyRow<any>;
+    column: DataColumn<any>;
+    value: unknown;
+    onUpdateValue: (rowDataId: string, columnId: string, newValue: unknown) => void;
   }
+
+  let {
+    row,
+    column,
+    value = $bindable(),
+    onUpdateValue
+  }: Props = $props();
+
+  let isEditing = $state(false);
+
+  let inputElement: HTMLInputElement | undefined = $state();
+  run(() => {
+    if (isEditing) {
+      inputElement?.focus();
+    }
+  });
 
   const handleCancel = () => {
     isEditing = false;
@@ -26,14 +39,14 @@
 
 <div>
   {#if !isEditing}
-    <span on:click={() => (isEditing = true)}>
+    <span onclick={() => (isEditing = true)}>
       {value}
     </span>
   {:else}
-    <form on:submit|preventDefault={handleSubmit}>
+    <form onsubmit={preventDefault(handleSubmit)}>
       <input bind:this={inputElement} type="text" bind:value />
       <button type="submit">✅</button>
-      <button on:click={handleCancel}>❌</button>
+      <button onclick={handleCancel}>❌</button>
     </form>
   {/if}
 </div>

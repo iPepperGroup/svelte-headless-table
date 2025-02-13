@@ -1,26 +1,35 @@
 <script lang="ts">
   import { fly, slide } from 'svelte/transition';
   import { Disclosure, DisclosureButton, DisclosurePanel } from '@rgossiaux/svelte-headlessui';
+  interface Props {
+    children?: import('svelte').Snippet;
+  }
+
+  let { children }: Props = $props();
+
+  const children_render = $derived(children);
 </script>
 
 <div class="disclosure">
-  <Disclosure class="root" let:open>
-    <DisclosureButton class="trigger">
-      &nbsp;
+  <Disclosure class="root" >
+    {#snippet children({ open })}
+        <DisclosureButton class="trigger">
+        &nbsp;
+        {#if open}
+          <span transition:fly|local={{ y: 20 }}>Hide example</span>
+        {:else}
+          <span transition:fly|local={{ y: -20 }}>Show example</span>
+        {/if}
+      </DisclosureButton>
       {#if open}
-        <span transition:fly|local={{ y: 20 }}>Hide example</span>
-      {:else}
-        <span transition:fly|local={{ y: -20 }}>Show example</span>
+        <div transition:slide|local class="slide">
+          <DisclosurePanel static class="panel">
+            {@render children_render?.()}
+          </DisclosurePanel>
+        </div>
       {/if}
-    </DisclosureButton>
-    {#if open}
-      <div transition:slide|local class="slide">
-        <DisclosurePanel static class="panel">
-          <slot />
-        </DisclosurePanel>
-      </div>
-    {/if}
-  </Disclosure>
+          {/snippet}
+    </Disclosure>
 </div>
 
 <style lang="postcss">

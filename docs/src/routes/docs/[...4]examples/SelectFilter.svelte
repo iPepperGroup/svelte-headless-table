@@ -1,14 +1,21 @@
 <script lang="ts">
+  import { createBubbler, stopPropagation } from 'svelte/legacy';
+
+  const bubble = createBubbler();
   import { getDistinct } from '$lib/utils/array';
 
   import type { Readable, Writable } from 'svelte/store';
 
-  export let filterValue: Writable<string>;
-  export let preFilteredValues: Readable<unknown[]>;
-  $: uniqueValues = getDistinct($preFilteredValues);
+  interface Props {
+    filterValue: Writable<string>;
+    preFilteredValues: Readable<unknown[]>;
+  }
+
+  let { filterValue, preFilteredValues }: Props = $props();
+  let uniqueValues = $derived(getDistinct($preFilteredValues));
 </script>
 
-<select bind:value={$filterValue} on:click|stopPropagation class="demo">
+<select bind:value={$filterValue} onclick={stopPropagation(bubble('click'))} class="demo">
   <option value={undefined}>All</option>
   {#each uniqueValues as value}
     <option {value}>{value}</option>

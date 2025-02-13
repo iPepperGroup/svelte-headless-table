@@ -1,7 +1,14 @@
 <script lang="ts">
-  export let count = 0;
+  import { createBubbler } from 'svelte/legacy';
+
+  const bubble = createBubbler();
+  interface Props {
+    count?: number;
+  }
+
+  let { count = 0 }: Props = $props();
 </script>
 
-<button on:click class="py-2 px-4 bg-primary text-white rounded-lg">
+<button onclick={bubble('click')} class="py-2 px-4 bg-primary text-white rounded-lg">
   I've been clicked {count} times
 </button>

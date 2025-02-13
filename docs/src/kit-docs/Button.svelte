@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { createBubbler } from 'svelte/legacy';
+
+  const bubble = createBubbler();
   type ButtonVariant = 'filled' | 'unfilled';
   type ButtonSize = 'lg' | 'md';
 
@@ -10,17 +13,23 @@
     | ({ href: string } & Partial<HTMLAnchorElement>)
   );
 
-  export let variant: ButtonVariant = 'filled';
-  export let size: ButtonSize = 'md';
+  interface Props {
+    variant?: ButtonVariant;
+    size?: ButtonSize;
+    children?: import('svelte').Snippet;
+    [key: string]: any
+  }
+
+  let { variant = 'filled', size = 'md', children, ...rest }: Props = $props();
 </script>
 
 <svelte:element
-  this={$$restProps.href === undefined ? 'button' : 'a'}
-  {...$$restProps}
+  this={rest.href === undefined ? 'button' : 'a'}
+  {...rest}
   class="button {variant} {size}"
-  on:click
+  onclick={bubble('click')}
 >
-  <slot />
+  {@render children?.()}
 </svelte:element>
 
 <style lang="postcss">

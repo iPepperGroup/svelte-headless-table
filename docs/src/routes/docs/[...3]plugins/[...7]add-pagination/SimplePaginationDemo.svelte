@@ -64,11 +64,11 @@
   )}</pre>
 
 <div class="mb-4 flex gap-4 items-baseline">
-  <button on:click={() => $pageIndex--} disabled={!$hasPreviousPage} class="demo"
+  <button onclick={() => $pageIndex--} disabled={!$hasPreviousPage} class="demo"
     >Previous page</button
   >
   {$pageIndex + 1} out of {$pageCount}
-  <button on:click={() => $pageIndex++} disabled={!$hasNextPage} class="demo">Next page</button>
+  <button onclick={() => $pageIndex++} disabled={!$hasNextPage} class="demo">Next page</button>
 </div>
 <label for="page-size">Page size</label>
 <input id="page-size" type="number" min={1} bind:value={$pageSize} class="demo mb-4" />
@@ -77,32 +77,40 @@
   <table class="demo my-0" {...$tableAttrs}>
     <thead>
       {#each $headerRows as headerRow (headerRow.id)}
-        <Subscribe rowAttrs={headerRow.attrs()} let:rowAttrs>
-          <tr {...rowAttrs}>
-            {#each headerRow.cells as cell (cell.id)}
-              <Subscribe attrs={cell.attrs()} let:attrs props={cell.props()} let:props>
-                <th {...attrs}>
-                  <Render of={cell.render()} />
-                </th>
-              </Subscribe>
-            {/each}
-          </tr>
-        </Subscribe>
+        <Subscribe rowAttrs={headerRow.attrs()} >
+          {#snippet children({ rowAttrs })}
+                    <tr {...rowAttrs}>
+              {#each headerRow.cells as cell (cell.id)}
+                <Subscribe attrs={cell.attrs()}  props={cell.props()} >
+                  {#snippet children({ attrs, props })}
+                                <th {...attrs}>
+                      <Render of={cell.render()} />
+                    </th>
+                                                {/snippet}
+                            </Subscribe>
+              {/each}
+            </tr>
+                            {/snippet}
+                </Subscribe>
       {/each}
     </thead>
     <tbody {...$tableBodyAttrs}>
       {#each $pageRows as row (row.id)}
-        <Subscribe rowAttrs={row.attrs()} let:rowAttrs>
-          <tr {...rowAttrs}>
-            {#each row.cells as cell (cell.id)}
-              <Subscribe attrs={cell.attrs()} let:attrs>
-                <td {...attrs}>
-                  <Render of={cell.render()} />
-                </td>
-              </Subscribe>
-            {/each}
-          </tr>
-        </Subscribe>
+        <Subscribe rowAttrs={row.attrs()} >
+          {#snippet children({ rowAttrs })}
+                    <tr {...rowAttrs}>
+              {#each row.cells as cell (cell.id)}
+                <Subscribe attrs={cell.attrs()} >
+                  {#snippet children({ attrs })}
+                                <td {...attrs}>
+                      <Render of={cell.render()} />
+                    </td>
+                                                {/snippet}
+                            </Subscribe>
+              {/each}
+            </tr>
+                            {/snippet}
+                </Subscribe>
       {/each}
     </tbody>
   </table>

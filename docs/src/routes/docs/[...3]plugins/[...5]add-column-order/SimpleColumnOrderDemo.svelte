@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   export const getShuffled = (items: string[]): string[] => {
     items = [...items];
     const shuffled = [];
@@ -67,7 +67,7 @@
 
 <pre>$columnIdOrder = {JSON.stringify($columnIdOrder, null, 2)}</pre>
 
-<button on:click={() => ($columnIdOrder = getShuffled($columnIdOrder))} class="demo"
+<button onclick={() => ($columnIdOrder = getShuffled($columnIdOrder))} class="demo"
   >Shuffle columns</button
 >
 
@@ -75,32 +75,40 @@
   <table class="demo mb-0" {...$tableAttrs}>
     <thead>
       {#each $headerRows as headerRow (headerRow.id)}
-        <Subscribe rowAttrs={headerRow.attrs()} let:rowAttrs>
-          <tr {...rowAttrs}>
-            {#each headerRow.cells as cell (cell.id)}
-              <Subscribe attrs={cell.attrs()} let:attrs>
-                <th {...attrs}>
-                  <Render of={cell.render()} />
-                </th>
-              </Subscribe>
-            {/each}
-          </tr>
-        </Subscribe>
+        <Subscribe rowAttrs={headerRow.attrs()} >
+          {#snippet children({ rowAttrs })}
+                    <tr {...rowAttrs}>
+              {#each headerRow.cells as cell (cell.id)}
+                <Subscribe attrs={cell.attrs()} >
+                  {#snippet children({ attrs })}
+                                <th {...attrs}>
+                      <Render of={cell.render()} />
+                    </th>
+                                                {/snippet}
+                            </Subscribe>
+              {/each}
+            </tr>
+                            {/snippet}
+                </Subscribe>
       {/each}
     </thead>
     <tbody {...$tableBodyAttrs}>
       {#each $rows as row (row.id)}
-        <Subscribe rowAttrs={row.attrs()} let:rowAttrs>
-          <tr {...rowAttrs}>
-            {#each row.cells as cell (cell.id)}
-              <Subscribe attrs={cell.attrs()} let:attrs>
-                <td {...attrs}>
-                  <Render of={cell.render()} />
-                </td>
-              </Subscribe>
-            {/each}
-          </tr>
-        </Subscribe>
+        <Subscribe rowAttrs={row.attrs()} >
+          {#snippet children({ rowAttrs })}
+                    <tr {...rowAttrs}>
+              {#each row.cells as cell (cell.id)}
+                <Subscribe attrs={cell.attrs()} >
+                  {#snippet children({ attrs })}
+                                <td {...attrs}>
+                      <Render of={cell.render()} />
+                    </td>
+                                                {/snippet}
+                            </Subscribe>
+              {/each}
+            </tr>
+                            {/snippet}
+                </Subscribe>
       {/each}
     </tbody>
   </table>

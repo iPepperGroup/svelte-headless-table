@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { stopPropagation, createBubbler } from 'svelte/legacy';
+
+	const bubble = createBubbler();
 	import { derived, readable, get } from 'svelte/store';
 	import { createRender } from 'svelte-render';
 	import { Render, Subscribe, createTable } from '../lib/index.js';
@@ -281,66 +284,70 @@
 
 <h1>svelte-headless-table</h1>
 
-<button on:click={() => ($columnIdOrder = getShuffled($columnIdOrder))}>Shuffle columns</button>
+<button onclick={() => ($columnIdOrder = getShuffled($columnIdOrder))}>Shuffle columns</button>
 <div>
-	<button on:click={() => $pageIndex--} disabled={!$hasPreviousPage}>Previous page</button>
+	<button onclick={() => $pageIndex--} disabled={!$hasPreviousPage}>Previous page</button>
 	{$pageIndex + 1} of {$pageCount}
-	<button on:click={() => $pageIndex++} disabled={!$hasNextPage}>Next page</button>
+	<button onclick={() => $pageIndex++} disabled={!$hasNextPage}>Next page</button>
 	<label for="page-size">Page size</label>
 	<input id="page-size" type="number" min={1} bind:value={$pageSize} />
 </div>
 
-<button on:click={() => console.log(get(exportedData))}>Export as object</button>
-<button on:click={() => console.log(get(exportedJson))}>Export as JSON</button>
-<button on:click={() => console.log(get(exportedCsv))}>Export as CSV</button>
+<button onclick={() => console.log(get(exportedData))}>Export as object</button>
+<button onclick={() => console.log(get(exportedJson))}>Export as JSON</button>
+<button onclick={() => console.log(get(exportedCsv))}>Export as CSV</button>
 
 <table {...$tableAttrs}>
 	<thead>
 		{#each $headerRows as headerRow (headerRow.id)}
-			<Subscribe attrs={headerRow.attrs()} let:attrs>
-				<tr {...attrs}>
-					{#each headerRow.cells as cell (cell.id)}
-						<Subscribe attrs={cell.attrs()} let:attrs props={cell.props()} let:props>
-							<th
-								{...attrs}
-								on:click={props.sort.toggle}
-								class:sorted={props.sort.order !== undefined}
-								use:props.resize
-							>
-								<div>
-									<Render of={cell.render()} />
-									{#if props.sort.order === 'asc'}
-										⬇️
-									{:else if props.sort.order === 'desc'}
-										⬆️
-									{/if}
-								</div>
-								{#if !props.group.disabled}
-									<button on:click|stopPropagation={props.group.toggle}>
-										{#if props.group.grouped}
-											ungroup
-										{:else}
-											group
+			<Subscribe attrs={headerRow.attrs()} >
+				{#snippet children({ attrs })}
+								<tr {...attrs}>
+						{#each headerRow.cells as cell (cell.id)}
+							<Subscribe attrs={cell.attrs()}  props={cell.props()} >
+								{#snippet children({ attrs, props })}
+														<th
+										{...attrs}
+										onclick={props.sort.toggle}
+										class:sorted={props.sort.order !== undefined}
+										use:props.resize
+									>
+										<div>
+											<Render of={cell.render()} />
+											{#if props.sort.order === 'asc'}
+												⬇️
+											{:else if props.sort.order === 'desc'}
+												⬆️
+											{/if}
+										</div>
+										{#if !props.group.disabled}
+											<button onclick={stopPropagation(props.group.toggle)}>
+												{#if props.group.grouped}
+													ungroup
+												{:else}
+													group
+												{/if}
+											</button>
 										{/if}
-									</button>
-								{/if}
-								{#if props.filter?.render !== undefined}
-									<Render of={props.filter.render} />
-								{/if}
-								{#if !props.resize.disabled}
-									<!-- svelte-ignore a11y-click-events-have-key-events -->
-									<div
-										class="resizer"
-										on:click|stopPropagation
-										use:props.resize.drag
-										use:props.resize.reset
-									/>
-								{/if}
-							</th>
+										{#if props.filter?.render !== undefined}
+											<Render of={props.filter.render} />
+										{/if}
+										{#if !props.resize.disabled}
+											<!-- svelte-ignore a11y_click_events_have_key_events -->
+											<div
+												class="resizer"
+												onclick={stopPropagation(bubble('click'))}
+												use:props.resize.drag
+												use:props.resize.reset
+											></div>
+										{/if}
+									</th>
+																					{/snippet}
+												</Subscribe>
+						{/each}
+					</tr>
+											{/snippet}
 						</Subscribe>
-					{/each}
-				</tr>
-			</Subscribe>
 		{/each}
 		<tr>
 			<th colspan={$visibleColumns.length}>
@@ -350,26 +357,30 @@
 	</thead>
 	<tbody {...$tableBodyAttrs}>
 		{#each $pageRows as row (row.id)}
-			<Subscribe attrs={row.attrs()} let:attrs rowProps={row.props()} let:rowProps>
-				<tr id={row.id} {...attrs} class:selected={rowProps.select.selected}>
-					{#each row.cells as cell (cell.id)}
-						<Subscribe attrs={cell.attrs()} let:attrs props={cell.props()} let:props>
-							<td
-								{...attrs}
-								class:sorted={props.sort.order !== undefined}
-								class:matches={props.tableFilter.matches}
-								class:group={props.group.grouped}
-								class:aggregate={props.group.aggregated}
-								class:repeat={props.group.repeated}
-							>
-								{#if !props.group.repeated}
-									<Render of={cell.render()} />
-								{/if}
-							</td>
+			<Subscribe attrs={row.attrs()}  rowProps={row.props()} >
+				{#snippet children({ attrs, rowProps })}
+								<tr id={row.id} {...attrs} class:selected={rowProps.select.selected}>
+						{#each row.cells as cell (cell.id)}
+							<Subscribe attrs={cell.attrs()}  props={cell.props()} >
+								{#snippet children({ attrs, props })}
+														<td
+										{...attrs}
+										class:sorted={props.sort.order !== undefined}
+										class:matches={props.tableFilter.matches}
+										class:group={props.group.grouped}
+										class:aggregate={props.group.aggregated}
+										class:repeat={props.group.repeated}
+									>
+										{#if !props.group.repeated}
+											<Render of={cell.render()} />
+										{/if}
+									</td>
+																					{/snippet}
+												</Subscribe>
+						{/each}
+					</tr>
+											{/snippet}
 						</Subscribe>
-					{/each}
-				</tr>
-			</Subscribe>
 		{/each}
 	</tbody>
 </table>

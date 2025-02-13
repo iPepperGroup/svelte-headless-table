@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	export let text: string;
+	interface Props {
+		text: string;
+	}
+
+	let { text }: Props = $props();
 
 	onMount(() => {
 		console.log('mount Italic');

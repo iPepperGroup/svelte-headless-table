@@ -113,48 +113,56 @@
   <table class="demo my-0" {...$tableAttrs}>
     <thead>
       {#each $headerRows as headerRow (headerRow.id)}
-        <Subscribe rowAttrs={headerRow.attrs()} let:rowAttrs>
-          <tr>
-            {#each headerRow.cells as cell (cell.id)}
-              <Subscribe attrs={cell.attrs()} let:attrs props={cell.props()} let:props>
-                <th {...attrs}>
-                  <Render of={cell.render()} />
-                  {#if !props.group.disabled}
-                    <button on:click={props.group.toggle} class="demo">
-                      {#if props.group.grouped}
-                        ungroup
-                      {:else}
-                        group
+        <Subscribe rowAttrs={headerRow.attrs()} >
+          {#snippet children({ rowAttrs })}
+                    <tr>
+              {#each headerRow.cells as cell (cell.id)}
+                <Subscribe attrs={cell.attrs()}  props={cell.props()} >
+                  {#snippet children({ attrs, props })}
+                                <th {...attrs}>
+                      <Render of={cell.render()} />
+                      {#if !props.group.disabled}
+                        <button onclick={props.group.toggle} class="demo">
+                          {#if props.group.grouped}
+                            ungroup
+                          {:else}
+                            group
+                          {/if}
+                        </button>
                       {/if}
-                    </button>
-                  {/if}
-                </th>
-              </Subscribe>
-            {/each}
-          </tr>
-        </Subscribe>
+                    </th>
+                                                {/snippet}
+                            </Subscribe>
+              {/each}
+            </tr>
+                            {/snippet}
+                </Subscribe>
       {/each}
     </thead>
     <tbody {...$tableBodyAttrs}>
       {#each $rows as row (row.id)}
-        <Subscribe rowAttrs={row.attrs()} let:rowAttrs>
-          <tr>
-            {#each row.cells as cell (cell.id)}
-              <Subscribe attrs={cell.attrs()} let:attrs props={cell.props()} let:props>
-                <td
-                  {...attrs}
-                  class:group={props.group.grouped}
-                  class:aggregate={props.group.aggregated}
-                  class:repeat={props.group.repeated}
-                >
-                  {#if !props.group.repeated}
-                    <Render of={cell.render()} />
-                  {/if}
-                </td>
-              </Subscribe>
-            {/each}
-          </tr>
-        </Subscribe>
+        <Subscribe rowAttrs={row.attrs()} >
+          {#snippet children({ rowAttrs })}
+                    <tr>
+              {#each row.cells as cell (cell.id)}
+                <Subscribe attrs={cell.attrs()}  props={cell.props()} >
+                  {#snippet children({ attrs, props })}
+                                <td
+                      {...attrs}
+                      class:group={props.group.grouped}
+                      class:aggregate={props.group.aggregated}
+                      class:repeat={props.group.repeated}
+                    >
+                      {#if !props.group.repeated}
+                        <Render of={cell.render()} />
+                      {/if}
+                    </td>
+                                                {/snippet}
+                            </Subscribe>
+              {/each}
+            </tr>
+                            {/snippet}
+                </Subscribe>
       {/each}
     </tbody>
   </table>

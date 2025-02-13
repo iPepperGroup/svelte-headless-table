@@ -2,7 +2,11 @@
   import hljs from 'highlight.js';
   import { getHljsLang } from '$lib/utils/useHljs';
 
-  export let code: string;
+  interface Props {
+    code: string;
+  }
+
+  let { code }: Props = $props();
   const language = getHljsLang();
   const codeHtml = language !== undefined ? hljs.highlight(code, { language }).value : undefined;
 </script>

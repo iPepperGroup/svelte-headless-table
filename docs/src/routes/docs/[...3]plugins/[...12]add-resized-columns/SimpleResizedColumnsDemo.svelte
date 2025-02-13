@@ -61,35 +61,43 @@
   <table class="demo mb-0" {...$tableAttrs}>
     <thead>
       {#each $headerRows as headerRow (headerRow.id)}
-        <Subscribe rowAttrs={headerRow.attrs()} let:rowAttrs>
-          <tr {...rowAttrs}>
-            {#each headerRow.cells as cell (cell.id)}
-              <Subscribe attrs={cell.attrs()} let:attrs props={cell.props()} let:props>
-                <th {...attrs} use:props.resize>
-                  <Render of={cell.render()} />
-                  {#if !props.resize.disabled}
-                    <div class="resizer" use:props.resize.drag />
-                  {/if}
-                </th>
-              </Subscribe>
-            {/each}
-          </tr>
-        </Subscribe>
+        <Subscribe rowAttrs={headerRow.attrs()} >
+          {#snippet children({ rowAttrs })}
+                    <tr {...rowAttrs}>
+              {#each headerRow.cells as cell (cell.id)}
+                <Subscribe attrs={cell.attrs()}  props={cell.props()} >
+                  {#snippet children({ attrs, props })}
+                                <th {...attrs} use:props.resize>
+                      <Render of={cell.render()} />
+                      {#if !props.resize.disabled}
+                        <div class="resizer" use:props.resize.drag></div>
+                      {/if}
+                    </th>
+                                                {/snippet}
+                            </Subscribe>
+              {/each}
+            </tr>
+                            {/snippet}
+                </Subscribe>
       {/each}
     </thead>
     <tbody {...$tableBodyAttrs}>
       {#each $rows as row (row.id)}
-        <Subscribe rowAttrs={row.attrs()} let:rowAttrs>
-          <tr {...rowAttrs}>
-            {#each row.cells as cell (cell.id)}
-              <Subscribe attrs={cell.attrs()} let:attrs>
-                <td {...attrs}>
-                  <Render of={cell.render()} />
-                </td>
-              </Subscribe>
-            {/each}
-          </tr>
-        </Subscribe>
+        <Subscribe rowAttrs={row.attrs()} >
+          {#snippet children({ rowAttrs })}
+                    <tr {...rowAttrs}>
+              {#each row.cells as cell (cell.id)}
+                <Subscribe attrs={cell.attrs()} >
+                  {#snippet children({ attrs })}
+                                <td {...attrs}>
+                      <Render of={cell.render()} />
+                    </td>
+                                                {/snippet}
+                            </Subscribe>
+              {/each}
+            </tr>
+                            {/snippet}
+                </Subscribe>
       {/each}
     </tbody>
   </table>
